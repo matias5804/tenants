@@ -6,6 +6,7 @@ function App() {
   const [currentTenants, setCurrentTenants] = useState([]);
   const [tenants, setTenants] = useState([]);
   const [tabActive, setTabActive] = useState([1])
+  const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
     fetchData();
@@ -87,6 +88,36 @@ function App() {
     }
   };
 
+  const saveTenant = async (event) => {
+  
+    event.preventDefault();
+    let {name, paymentStatus, leaseEndDate} =  event.target;
+    let dateParts = new Date(leaseEndDate.value);
+
+    if(dateParts < new Date()) {
+      alert("La fecha debe ser a futuro!");
+      return;
+    }
+
+    let ternant = {
+      name: name.value,
+      paymentStatus: paymentStatus.value,
+      leaseEndDate: dateParts.toISOString()
+    };
+
+    try {
+      let res = await Service.addTenant({...ternant});
+      setTenants([...tenants, res]);
+      setCurrentTenants([...tenants, res]);
+      name = "";
+      paymentStatus = "";
+      leaseEndDate = "";
+      setShowForm(false);
+    }catch(err) {
+      alert(err)
+    }
+  };
+
   return (
       <>
         <div className="container">
@@ -112,10 +143,10 @@ function App() {
           <table className="table">
           <thead>
             <tr>
-              <th onClick={orderById} >#</th>
-              <th onClick={orderByName}>Name</th>
-              <th onClick={orderByStatus} >Payment Status</th>
-              <th onClick={orderDate} >Lease End Date</th>
+              <th onClick={orderById} style={{cursor:"pointer"}} >#</th>
+              <th onClick={orderByName} style={{cursor:"pointer"}} >Name</th>
+              <th onClick={orderByStatus} style={{cursor:"pointer"}}>Payment Status</th>
+              <th onClick={orderDate} style={{cursor:"pointer"}}>Lease End Date</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -141,29 +172,38 @@ function App() {
           </table>
         </div>
         <div className="container">
-          <button className="btn btn-secondary">Add Tenant</button>
+        <button className="btn btn-secondary"onClick={ ()=> setShowForm(true)}>Add Tenant</button>
         </div>
-        <div className="container">
-          <form>
-            <div className="form-group">
-              <label>Name</label>
-              <input className="form-control"/>
+        {showForm &&
+
+            <div className="container">
+            <form onSubmit={saveTenant}>
+              <div className="form-group">
+                <label>Name</label>
+                <input className="form-control" name="name" />
+              </div>
+              <div className="form-group">
+                <label>Payment Status</label>
+                <select className="form-control" 
+                        name="paymentStatus"
+                        style={{cursor:"pointer"}}>
+                  <option >CURRENT</option>
+                  <option>LATE</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Lease End Date</label>
+                <input
+                  className="form-control"
+                  name="leaseEndDate"
+                  placeholder="mm/dd/yyyy"
+                />
+              </div>
+              <button className="btn btn-primary">Save</button>
+              <button className="btn" onClick={ ()=> setShowForm(false)}>Cancel</button>
+            </form> 
             </div>
-            <div className="form-group">
-              <label>Payment Status</label>
-              <select className="form-control">
-                <option>CURRENT</option>
-                <option>LATE</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Lease End Date</label>
-              <input className="form-control"/>
-            </div>
-            <button className="btn btn-primary">Save</button>
-            <button className="btn">Cancel</button>
-          </form>
-        </div>
+        }
       </>
   );
 }
