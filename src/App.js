@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Service } from './Service';
 
 function App() {
-
+  
   const [currentTenants, setCurrentTenants] = useState([]);
+  const [tenants, setTenants] = useState([]);
+  const [tabActive, setTabActive] = useState([1])
 
   useEffect(() => {
     fetchData();
@@ -12,33 +14,100 @@ function App() {
   const fetchData = async () => {
     let data = await Service.getTenants();
     setCurrentTenants(data);
+    setTenants(data);
+  };
+
+  const monthDiff = (d1, d2) => {
+    var months;
+    months = (d2.getFullYear() - d1.getFullYear()) * 12;
+    months -= d1.getMonth();
+    months += d2.getMonth();
+    return months <= 0 ? 0 : months;
+  };
+
+  const all = () => {
+    setCurrentTenants(tenants);
+    setTabActive(1);
+  }
+
+  const paymentLate = (e) => {
+    e.preventDefault();
+    let data = tenants.filter((item) => item.paymentStatus === "LATE");
+    setCurrentTenants(data);
+    setTabActive(2);
+  };
+
+  const lessThenMonths = (e) => {
+    e.preventDefault();
+    let actualDate = new Date();
+    let data = tenants.filter((item) => {
+      let itemDate = new Date(item.leaseEndDate);
+      return monthDiff(itemDate, actualDate) <= 1;
+    });
+    setCurrentTenants(data);
+    setTabActive(3);
+  };
+
+  const orderById = () => {
+    let data = tenants.sort((a, b) => a.id - b.id);
+    setCurrentTenants([...data]);
+  };
+
+  const orderByName = () => {
+    let data = tenants;
+    data = data.sort((a, b) =>
+      a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1
+    );
+    setCurrentTenants([...data]);
+  };
+
+  const orderByStatus = () => {
+    let data = tenants;
+    data = data.sort((a, b) =>
+      a.paymentStatus.toLowerCase() > b.paymentStatus.toLowerCase() ? 1 : -1
+    );
+    setCurrentTenants([...data]);
+  };
+
+  const orderDate = () => {
+    let data = tenants.sort((a, b) => {
+      return new Date(b.leaseEndDate) - new Date(a.leaseEndDate);
+    });
+    setCurrentTenants([...data]);
   };
 
   return (
       <>
         <div className="container">
-          <h1>Tenants</h1>
-          <ul className="nav nav-tabs">
-            <li className="nav-item">
-              <a className="nav-link active" href="#">All</a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">Payment is late</a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">Lease ends in less than a month</a>
-            </li>
-          </ul>
+        <h1>Tenants</h1>
+        <ul className="nav nav-tabs">
+          <li className="nav-item">
+            <a className={(tabActive == 1) ? "nav-link active" : "nav-link"} href="#" onClick={all}>
+              All
+            </a>
+          </li>
+          <li className="nav-item">
+            <a className={(tabActive == 2) ? "nav-link active" : "nav-link"} href="#" onClick={paymentLate}>
+              Payment is late
+            </a>
+          </li>
+          <li className="nav-item">
+            <a className={(tabActive == 3) ? "nav-link active" : "nav-link"} href="#" onClick={lessThenMonths}>
+              Lease ends in less than a month
+            </a>
+          </li>
+        </ul>
+
           <table className="table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Payment Status</th>
-                <th>Lease End Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+          <thead>
+            <tr>
+              <th onClick={orderById} >#</th>
+              <th onClick={orderByName}>Name</th>
+              <th onClick={orderByStatus} >Payment Status</th>
+              <th onClick={orderDate} >Lease End Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
             <tbody>
             {currentTenants.map((item) => (
               <tr key={item.id}>
