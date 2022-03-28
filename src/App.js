@@ -1,7 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Service } from './Service';
 
 function App() {
+
+  const [currentTenants, setCurrentTenants] = useState([]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    let data = await Service.getTenants();
+    setCurrentTenants(data);
+  };
 
   return (
       <>
@@ -29,15 +40,20 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <th>1</th>
-                <td>Mark Otto</td>
-                <td>CURRENT</td>
-                <td>12/31/2020</td>
+            {currentTenants.map((item) => (
+              <tr key={item.id}>
+                <td>{item.id}</td>
+                <td>{item.name}</td>
+                <td>{item.paymentStatus}</td>
+                <td>{item.leaseEndDate}</td>
                 <td>
-                  <button className="btn btn-danger">Delete</button>
+                  <button className="btn btn-danger">
+                    Delete
+                  </button>
                 </td>
               </tr>
+            ))}
+          
             </tbody>
           </table>
         </div>
