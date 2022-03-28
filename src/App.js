@@ -76,6 +76,17 @@ function App() {
     setCurrentTenants([...data]);
   };
 
+  const deleteTenant = async (ternantId) => {
+    try {
+      let data = tenants.filter((item) => item.id !== ternantId);
+      await Service.deleteTenant(ternantId);
+      setTenants([...data]);
+      setCurrentTenants([...data]);
+    }catch(err) {
+      alert(err)
+    }
+  };
+
   return (
       <>
         <div className="container">
@@ -116,7 +127,10 @@ function App() {
                 <td>{item.paymentStatus}</td>
                 <td>{item.leaseEndDate}</td>
                 <td>
-                  <button className="btn btn-danger">
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => deleteTenant(item.id)}
+                  >
                     Delete
                   </button>
                 </td>
